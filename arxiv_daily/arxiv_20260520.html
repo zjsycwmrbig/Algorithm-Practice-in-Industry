@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arXiv 每日论文精选</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/styles.css?v=1779262899">
+    <script src="static/tailwind.config.js"></script>
+
+    <style>
+        /* 分级折叠功能样式 */
+        .collapsed-level-1 .paper-details {
+            display: none;
+        }
+        
+        .collapsed-level-2 {
+            display: none !important;
+        }
+        
+        /* 展开/折叠图标样式 */
+        .expand-icon {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+            margin-right: 5px;
+        }
+        
+        /* 展开/折叠按钮样式 */
+        .expand-toggle {
+            cursor: pointer;
+            padding: 8px 12px;
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: 500;
+            color: #4b5563;
+            transition: all 0.2s ease;
+        }
+        
+        .expand-toggle:hover {
+            background-color: #e5e7eb;
+        }
+        
+        /* 分割线样式 */
+        .papers-divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .papers-divider-label {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 0 12px;
+            color: #9ca3af;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .papers-divider-label:hover {
+            color: #4b5563;
+        }
+        
+        /* 展开后的样式 */
+        .expanded-all .collapsed-level-1 .paper-details,
+        .expanded-all .collapsed-level-2 {
+            display: block;
+        }
+        
+        .expanded-level-2 .collapsed-level-2 {
+            display: block;
+        }
+    </style>
+    </head>
+
+<body class="bg-gray-50 font-sans text-dark">
+    <!-- 顶部导航与统计信息合并 -->
+    <header class="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3">
+                <div class="flex items-center">
+                    <i class="fa fa-book text-primary text-xl mr-2"></i>
+                    <h1 class="text-lg md:text-xl font-bold text-gray-800">arXiv 每日论文精选</h1>
+                </div>
+                <div class="flex items-center mt-2 md:mt-0">
+                    <span id="current-date" class="text-gray-600 text-sm">
+                        <i class="fa fa-calendar-o mr-1"></i>2026-05-20
+                    </span>
+                    <div class="ml-3 relative" id="date-picker-container">
+                        <button id="date-picker-toggle" class="bg-light border border-gray-300 text-gray-700 py-1 px-3 pr-6 rounded text-sm leading-tight focus:outline-none focus:bg-white inline-flex items-center">
+                            <i class="fa fa-calendar mr-2"></i>
+                            <span id="selected-date-text">2026-05-20</span>
+                            <i class="fa fa-chevron-down ml-2 text-xs"></i>
+                        </button>
+                        <div id="date-picker" class="hidden absolute right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2 z-20 w-56">
+                            <div class="flex justify-between items-center mb-2">
+                                <button id="prev-month" class="text-gray-500 hover:text-gray-700"><i class="fa fa-chevron-left"></i></button>
+                                <h4 id="current-month">2026-05-20</h4>
+                                <button id="next-month" class="text-gray-500 hover:text-gray-700"><i class="fa fa-chevron-right"></i></button>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 text-center text-xs mb-1">
+                                <div class="text-gray-500">日</div>
+                                <div class="text-gray-500">一</div>
+                                <div class="text-gray-500">二</div>
+                                <div class="text-gray-500">三</div>
+                                <div class="text-gray-500">四</div>
+                                <div class="text-gray-500">五</div>
+                                <div class="text-gray-500">六</div>
+                            </div>
+                            <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center text-sm">
+                                <!-- 日历格子将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="flex flex-wrap gap-4 text-sm">
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-1"><i class="fa fa-file-text-o"></i> 总论文数:</span>
+                    <span id="total-papers" class="font-semibold text-primary">28</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-1"><i class="fa fa-star"></i> 精选论文数:</span>
+                    <span id="selected-papers" class="font-semibold text-accent">7</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-1"><i class="fa fa-line-chart"></i> 平均评分:</span>
+                    <span id="avg-score" class="font-semibold text-secondary">2.6</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-5">
+        <!-- 筛选器 -->
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div class="text-gray-700 text-sm mb-2 sm:mb-0">
+                <span id="display-count" class="font-medium">显示 28 篇论文 (共 28 篇)</span>
+            </div>
+            <div class="flex space-x-2">
+                <button id="show-all"
+                    class="px-3 py-1 bg-primary text-white rounded text-sm hover:bg-primary/90 transition-colors">
+                    全部论文
+                </button>
+                <button id="show-selected"
+                    class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 transition-colors">
+                    仅显示精选
+                </button>
+            </div>
+        </div>
+
+        <!-- 论文列表 -->
+        <div id="papers-container" class="grid grid-cols-1 gap-4">
+            
+<div class="paper-card p-4 expanded">
+    <div class="flex justify-between items-start mb-2">
+        <h3 class="text-lg font-semibold text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19651v1" target="_blank" rel="noopener noreferrer">
+                <i class="fa fa-star text-yellow-400 mr-1"></i>差异与共识：面向序列推荐的多源负采样框架
+            </a>
+        </h3>
+        <span class="score-badge bg-green-100 text-green-800">
+            <i class="fa fa-star mr-1"></i>8/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Divergence Meets Consensus: A Multi-Source Negative Sampling Framework for Sequential Recommendation
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Yuanzi Li, Lingjie Wang, Jingyu Zhao, Zihang Tian, Yuhan Wang, Lei Wang, Xu Chen
+        </div>
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-lightbulb-o text-yellow-500 mr-1"></i>核心总结:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文研究序列推荐中的负采样问题，提出一种教师-同伴-自我多源框架，通过多源评分、分歧重排和共识蒸馏来提升负样本质量和多样性。</p>
+        </div>
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">针对序列推荐中的负采样问题，提出多源负采样框架，融合教师、同伴和自我模型，符合直接应用LLM或类似技术提升推荐系统的核心领域进展。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 10:42:23
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19651v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19651v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.IR</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Negative sampling is significant for training sequential recommendation models under implicit feedback. The predominant strategy, self-guided hard negative sampling, selects negatives based on the model's current state but suffers from three limitations: (1) the coupling between sampling and model updates triggers a vicious cycle that drives the model into local optima; (2) relying on current model parameters narrows sampling to a small region of the item space, reducing diversity and harming generalization; (3) identifying a hard negative requires scoring the entire candidate pool, causing substantial computational overhead with minimal information gain. To address these challenges, we propose MDCNS (Multi-source Divergence-Consensus for Negative Sampling), a novel "Teacher-Peer-Self" framework inspired by Vygotsky's Zone of Proximal Development (ZPD) theory. The proposed method comprises three components, including multi-source scoring, divergence re-ranking, and consensus distillation. Firstly, multi-source scoring incorporates peer and ensemble teacher models to inject external negative signals and break the self-reinforcement loop. Then, divergence re-ranking exploits prediction discrepancy between self and peer models to enhance sampling diversity. Finally, consensus distillation aligns the self model with the teacher via KL divergence, simultaneously improving computational cost utilization. Extensive experiments on six real-world datasets and five backbone models show that MDCNS consistently outperforms state-of-the-art negative sampling methods, demonstrating strong effectiveness and generalization.
+                </div>
+            </details>
+    </div>
+</div>
+<div class="paper-card p-4 expanded">
+    <div class="flex justify-between items-start mb-2">
+        <h3 class="text-lg font-semibold text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19887v1" target="_blank" rel="noopener noreferrer">
+                <i class="fa fa-star text-yellow-400 mr-1"></i>基于DAG的QoS感知动态任务部署在联网多阶段控制流水线中的应用
+            </a>
+        </h3>
+        <span class="score-badge bg-green-100 text-green-800">
+            <i class="fa fa-star mr-1"></i>8/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            DAG-Based QoS-Aware Dynamic Task Placement for Networked Multi-Stage Control Pipelines
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Thien Tran, Jonathan Kua, Thuong Hoang, Minh Tran, Yuemin Ding, Jiong Jin
+        </div>
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-lightbulb-o text-yellow-500 mr-1"></i>核心总结:</strong>
+            <p class="text-gray-600 text-sm mt-1">研究面向网络化机器人多阶段流水线的服务质量感知动态任务放置问题；核心方法是将感知-规划-控制流水线形式化为有向无环图，结合任务级和节点级属性，设计带滞回和最小驻留时间的窗口化代价函数进行动态放置优化。</p>
+        </div>
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文提出基于DAG的动态任务放置框架，解决3C协同设计问题，属于核心领域（RecSys/Search/Ads）之外的工业自动化方向，但与异构数据建模和自适应优化有间接联系。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 14:17:02
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19887v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19887v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span><span class="category-tag">cs.MA</span><span class="category-tag">cs.RO</span><span class="category-tag">eess.SY</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Current Physical AI (PAI) relies heavily on closed-loop visual-servoing pipelines, whose perception and planning stages may become computationally intensive onboard due to complex models embedded on robots. In practice, offloading the perception task to on-site edges statically is inappropriate for latency-sensitive, precise industrial settings over a standardized industrial network. This emphasizes the importance of Control-Communication-Computing (3C) co-design in industrial automation: monolithic local execution saturates AI-accelerated machine and robot hardware, while static edge offloading exposes the control loop to network jitter. Existing adaptive task placement (ATP) controllers can partially address the gap by relocating a single pipeline stage on binary threshold rules, without a multi-stage model and an explicit cost on placement switching. In this Work-in-Progress (WiP) paper, we propose a directed acyclic graph (DAG) based quality-of-service (QoS)-aware dynamic task placement (DTP) framework for sensing-perception-planning-control pipelines in networked robotics. This pipeline is formalized as a DAG with task-level and node-level attributes for compute cost, communication delay, and feasible placement sets; over a small interpretable candidate set (fully local, static offload, hybrid), a window-based cost function combines tail end-to-end latency, deadline violation rate, hardware utilization, and a Hamming-distance switching penalty, and a DTP algorithm with hysteresis and a minimum dwell-time bounds placement chatter. Our WiP paper presents the theoretical framework, a structured qualitative analysis, and a two-phase simulation plus hardware-in-the-loop validation roadmap.
+                </div>
+            </details>
+    </div>
+</div>
+<div class="paper-card p-4 expanded">
+    <div class="flex justify-between items-start mb-2">
+        <h3 class="text-lg font-semibold text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19593v1" target="_blank" rel="noopener noreferrer">
+                <i class="fa fa-star text-yellow-400 mr-1"></i>面向多模型LLM调度器：关于卸载和抢占的实证洞察
+            </a>
+        </h3>
+        <span class="score-badge bg-green-100 text-green-800">
+            <i class="fa fa-star mr-1"></i>8/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Towards Multi-Model LLM Schedulers: Empirical Insights into Offloading and Preemption
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Mert Yildiz, Pietro Spadaccino, Alexey Rolich, Francesca Cuomo, Andrea Baiocchi
+        </div>
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-lightbulb-o text-yellow-500 mr-1"></i>核心总结:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文通过实证分析研究多模型LLM serving中layer offloading和preemption的性能影响，发现offloading导致模型依赖的非线性解码吞吐下降，preemption开销主要由模型状态重载而非KV缓存迁移决定，并据此提出未来调度器需考虑的关键特征。</p>
+        </div>
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">直接关注LLM serving系统的调度与资源分配，核心问题是多模型场景下的heterogeneous硬件管理，属于LLM系统优化，与LLM应用和效率紧密相关。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 09:39:16
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19593v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19593v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.AI</span><span class="category-tag">cs.DC</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Modern deployments of Large Language Models (LLMs) increasingly require serving multiple models with diverse architectures, sizes, and specialization on shared, heterogeneous hardware. This setting introduces new challenges for resource allocation, dispatching, and scheduling, particularly under GPU memory constraints where partial CPU-GPU offloading and preemption become necessary. While existing systems primarily optimize throughput for a single model, comparatively little work addresses multi-model scheduling under these conditions. In this paper, we present an empirical study of how different LLMs behave across hardware platforms, focusing on the performance implications of layer offloading and preemption. We show that offloading leads to strongly non-linear and model-dependent degradation in decode throughput, with smaller models exhibiting sharper sensitivity to reduced GPU residency. We further demonstrate that preemption incurs substantial overhead, largely dominated by model state reload rather than key-value cache transfer, and that this cost varies significantly across models and hardware platforms. Additionally, we highlight the role of sequence length and interconnect bandwidth in amplifying data movement and execution inefficiencies. Based on these findings, we identify a set of key features that future schedulers must consider, including model-specific offloading sensitivity, workload characteristics, and the cost structure of preemption and data transfer. These insights provide guidance for the design of next-generation LLM serving systems capable of efficiently managing heterogeneous, multi-model workloads with hybrid CPU-GPU execution.
+                </div>
+            </details>
+    </div>
+</div>
+<div class="paper-card p-4 expanded">
+    <div class="flex justify-between items-start mb-2">
+        <h3 class="text-lg font-semibold text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19721v1" target="_blank" rel="noopener noreferrer">
+                <i class="fa fa-star text-yellow-400 mr-1"></i>投影潜在强化学习动作：迈向通用且可扩展的图组合优化
+            </a>
+        </h3>
+        <span class="score-badge bg-green-100 text-green-800">
+            <i class="fa fa-star mr-1"></i>6/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Projecting Latent RL Actions: Towards Generalizable and Scalable Graph Combinatorial Optimization
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Franco Terranova, Guillermo Bernardez, Albert Cabellos-Aparicio, Nina Miolane, A...
+        </div>
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-lightbulb-o text-yellow-500 mr-1"></i>核心总结:</strong>
+            <p class="text-gray-600 text-sm mt-1">研究图组合优化中的泛化与可扩展性问题，核心方法是在GNN嵌入空间预测连续潜动作并解码为离散动作，实现单次前向推理，避免逐动作搜索。</p>
+        </div>
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">论文提出投影智能体处理图组合优化，涉及GNN和RL，与核心LLM或Transformer技术无直接关联，但其中连续动作嵌入和解码思想可启发推荐系统中的离散行为建模。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 11:55:44
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19721v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19721v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.AI</span><span class="category-tag">cs.LG</span><span class="category-tag">cs.NI</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Graph combinatorial optimization (GCO) has attracted growing interest, as many NP-hard problems naturally admit graph formulations, yet their combinatorial explosion renders exact methods computationally intractable. Recent advances in Reinforcement Learning (RL) combined with Graph Neural Networks (GNNs) have significantly improved learning-based GCO solvers. However, existing approaches face limitations in both generalization across diverse graph instances and computational scalability as action spaces grow. To address both challenges, we introduce projection agents, a novel RL-GCO approach that operates directly in a continuous GNN-based action embedding space, predicting a desired latent action in a single forward pass and subsequently decoding it into a valid discrete action. Additionally, we enable fair comparison across RL methods through a shared embedding space for both observations and actions. Across diverse benchmarks, our approach achieves up to 16.2x faster inference and up to 40% better generalization than existing solutions using only simple nearest-neighbor decoding, while opening the door to strong RL performance in super-linear decision spaces with multiple interdependent variables. Finally, we release LaGCO-RL, a Python library that automates latent action-space construction and supports existing RL-GCO solutions, promoting reproducibility and adaptation to new GCO benchmarks.
+                </div>
+            </details>
+    </div>
+</div>
+<div class="paper-card p-4 expanded">
+    <div class="flex justify-between items-start mb-2">
+        <h3 class="text-lg font-semibold text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19628v1" target="_blank" rel="noopener noreferrer">
+                <i class="fa fa-star text-yellow-400 mr-1"></i>理解怪异权重：对SPLADE学习术语重要性的剖析
+            </a>
+        </h3>
+        <span class="score-badge bg-blue-100 text-blue-800">
+            <i class="fa fa-star mr-1"></i>4/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Understanding Wacky Weights: A Dissection of SPLADE's Learned Term Importance
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Gregory Polyakov, Harrisen Scells, Carsten Eickhoff
+        </div>
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-lightbulb-o text-yellow-500 mr-1"></i>核心总结:</strong>
+            <p class="text-gray-600 text-sm mt-1">本文研究SPLADE稀疏检索模型中出现的与输入语义无关的扩权（wacky weights）问题，通过复现实验和提出词法效用定义，系统分析其起源、普遍性及对检索效果的影响，发现大词汇量和高稀疏正则化分别增加和降低其出现，且主要用于域内效果而非泛化。</p>
+        </div>
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">主要研究可解释性疑问，但核心问题与我的搜广推技术焦点没有直接关系。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 10:07:13
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19628v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19628v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.IR</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Learned sparse retrieval models such as SPLADE combine the effectiveness of neural architectures with the efficiency of inverted indices. As these models assign weights to terms from a fixed vocabulary, interpretability is often touted as a major benefit of these models. However, the emergence of wacky weights, i.e., expansion terms that appear semantically unrelated to the input, limits interpretability. While prior research has anecdotally observed this phenomenon, there is a lack of systematic understanding regarding their origins, prevalence, and contribution to retrieval effectiveness. In this paper, we reproduce SPLADE-v2 to systematically investigate wacky weights across the SPLADE family of models. We present a comprehensive dissection of wacky weights, providing a formal definition of wackiness based on the lexical utility of expansion terms. Furthermore, we introduce a novel measure to compare the prevalence of these tokens across models with varying vocabularies and sparsity levels. Beyond reproducing the original SPLADE-v2, we train it with various loss functions, datasets, and backbone transformers to isolate the factors contributing to wackiness. Our results show that larger vocabularies are associated with a higher prevalence of wacky tokens, while stricter sparsity regularizers are associated with lower prevalence. Finally, we find that wacky weights are used primarily for in-domain effectiveness rather than out-of-domain generalization.
+                </div>
+            </details>
+    </div>
+</div>
+<div class="paper-card p-4 expanded">
+    <div class="flex justify-between items-start mb-2">
+        <h3 class="text-lg font-semibold text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19909v1" target="_blank" rel="noopener noreferrer">
+                <i class="fa fa-star text-yellow-400 mr-1"></i>Fair-Aurora：多流环境中基于强化学习的拥塞控制的公平性策略比较
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>2/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Fair-Aurora: Comparing Fairness Strategies for Reinforcement Learning-Based Congestion Control in Multi-Flow Environments
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Thomas Mbrice, Yuyu Liu
+        </div>
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-lightbulb-o text-yellow-500 mr-1"></i>核心总结:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文研究多流环境下基于强化学习的拥塞控制算法的公平性问题，提出三种后置公平性策略（奖励塑造、观测增强、损失敏感性调整），以在保持原有架构的前提下提升带宽分配的公平性。</p>
+        </div>
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文聚焦于基于强化学习的网络拥塞控制算法的公平性优化，属于网络通信和系统领域，与推荐、搜索、广告或LLM/Transformer技术的核心关注点无直接关联。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 14:38:12
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19909v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19909v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.NI</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Reinforcement learning (RL) has emerged as a promising paradigm for Internet congestion control, achieving higher link utilization than classical heuristics. However, RL-based controllers trained in single-flow environments are not guaranteed to share bandwidth equitably when deployed in multi-flow networks. This paper investigates the fairness properties of Aurora~\cite{jay2019aurora}, a state-of-the-art deep RL congestion controller, and evaluates three post-hoc fairness strategies that preserve Aurora's RL architecture: \emph{reward shaping} (Strategy~A), \emph{observation augmentation} (Strategy~B), and \emph{loss-sensitivity tuning} (Strategy~C). Using a custom shared-bottleneck simulator and Jain's fairness index as the primary metric, we find that modest reward shaping achieves the best fairness while preserving aggregate throughput. All strategies maintain the total bandwidth budget with fairness being achieved through redistribution, not reduction. Beyond the 2-flow homogeneous setting, an extended evaluation across mixed Aurora--CUBIC competition and dynamic flow entry/exit scenarios shows that Strategy~C's loss-sensitivity emerges as the most TCP-friendly mechanism, while Strategy~B is the most stable through dynamic flow-set changes.
+                </div>
+            </details>
+    </div>
+</div>
+<div class="paper-card p-4 expanded">
+    <div class="flex justify-between items-start mb-2">
+        <h3 class="text-lg font-semibold text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19627v1" target="_blank" rel="noopener noreferrer">
+                <i class="fa fa-star text-yellow-400 mr-1"></i>LLM辅助在网络运营中的帮助有多大？一个大型示范网络的案例研究
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>1/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            How Helpful is LLM Assistance in Network Operations? A Case Study at a Large Demonstration Network
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Ryo Nakamura, Koshi Eguchi
+        </div>
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-lightbulb-o text-yellow-500 mr-1"></i>核心总结:</strong>
+            <p class="text-gray-600 text-sm mt-1">研究LLM在网络运维中的帮助程度；通过大规模演示网络的实验和工程师反馈，量化了LLM助理的正面评价率（68.1%）并分析了有效使用条件。</p>
+        </div>
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">论文聚焦于LLM在网络运维中的实际应用评估，而非推荐、搜索或广告核心领域、Transformer架构或VLM类比等关注点。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 10:06:02
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19627v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19627v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.NI</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    This paper reports on a real-world case study in which over 100 network engineers assessed how a Large Language Model (LLM) can assist in building and operating a network. The versatility of LLMs has accelerated their adoption across a wide range of domains, and assisting network operations is one such promising application. LLMs are probabilistic models, unlike deterministic protocols and configurations; therefore, clarifying their capabilities -- how and to what extent LLMs can help in network operations -- is a crucial step toward adopting LLMs. To offer practical insights into this issue, we conducted an extensive experiment on a large demonstration network built for a public exhibition, consisting of 21 racks with heterogeneous network devices. In the experiment, a total of 105 network engineers used an LLM-based chatbot while building and operating the network. The chatbot was equipped with three external functions: retrieval-augmented generation for domain-specific knowledge, CLI control of network devices running on the network, and access to a ticket system. The participants gave evaluations for the chatbot's responses on a best-effort basis. Analysis of the chat histories shows that 68.1% of the evaluations were positive, indicating a quantitative baseline of the LLM's helpfulness in network operations. Our results also demonstrate that understanding the capabilities of the chatbot is important for eliciting better responses. Moreover, we provide detailed use case analyses while sharing actual user--chatbot interactions.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.20157v1" target="_blank" rel="noopener noreferrer">
+                SAGE：面向欺诈检测的可扩展自动门控集成以实现可信负样本挖掘
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>3/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            SAGE: Scalable Automatic Gating Ensemble for Confident Negative Harvesting in Fraud Detection
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Sudheer Tubati, Amit Goyal
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文聚焦于欺诈检测中的负样本挖掘，虽属推荐系统中的样本选择偏差问题，但领域限定在金融风控，非推荐系统通用场景。且‘Confident Negative Harvesting’技术对排序模型中的负采样有间接启发，但核心方法未体现与推荐系统直接相关。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 17:46:31
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.20157v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.20157v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.LG</span><span class="category-tag">cs.CR</span><span class="category-tag">cs.IR</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Music streaming fraud, where bad actors artificially inflate stream counts to manipulate chart rankings and royalty payments, poses a significant threat to streaming services and legitimate content creators. Traditional fraud detection approaches struggle with a critical challenge: many legitimate edge cases, including super-fans and sleep-music sessions, exhibit activity patterns that closely mimic those of coordinated fraud. We present SAGE, a novel counterfactual-aware negative harvesting approach that combines SimHash-based stratified sampling with a modular gating ensemble for confident negative identification from unlabeled data. Our ensemble architecture employs pluggable statistical gates (currently instantiated with Mahalanobis distance and k-NN density) with configurable voting thresholds enabling adaptive precision-recall trade-offs. This addresses the representation bias problem in Positive-Unlabeled learning by ensuring comprehensive coverage of rare behavioral cohorts through floor-constrained sampling. Evaluation demonstrates strong precision and recall on held-out data. The approach generalizes across fraud detection domains, achieving strong performance on both customer-level and artist-level fraud without modification to the core methodology.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.20123v1" target="_blank" rel="noopener noreferrer">
+                BiRD：一种用于检索增强生成的双向排序防御机制
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>3/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            BiRD: A Bidirectional Ranking Defense Mechanism for Retrieval Augmented Generation
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Chengcai Gao, Zhihong Sun, Xiaochuan Shi, Qiufeng Wang, Chao Liang
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文主要关注检索增强生成（RAG）中的安全防御机制，而非推荐系统、搜索或广告中的排序或检索优化。虽然涉及检索和排序技术，但核心是防御对抗攻击，而非提升系统性能或效率，与我的研究重点不直接相关。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 17:11:00
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.20123v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.20123v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.CR</span><span class="category-tag">cs.IR</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    The growing adoption of Retrieval-Augmented Generation (RAG) has led to a rise in adversarial attacks. Existing defenses, relying on semantic analysis or voting, face a trade-off between high computational cost and limited robustness under strong poisoning attacks. Their fundamental limitation is the exclusive focus on semantic content relevance, while neglecting the retrieval context that is critically defined by ranking structures. To this end, we investigate the bidirectional ranking behavior of poisoned and benign documents, and discover a key discriminative pattern: poisoned documents exhibit significantly stronger alignment between their backward rankings and the query's forward ranking. Capitalizing on this, we propose BiRD, a bidirectional ranking defense mechanism built upon a dual-signal framework that leverages forward ranking to assess semantic content relevance and backward ranking to quantify ranking context consistency. This design directly addresses the fundamental limitation of prior approaches, enabling simultaneous efficiency and robustness. Extensive evaluation across 3 datasets with 3 retrievers and 3 LLMs under 2 attack scenarios validates BiRD's effectiveness. Notably, BiRD reduces the attack success rate of PoisonedRAG by up to 54% while simultaneously improving task accuracy by up to 56%, with average additional latency under 1 second.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19892v1" target="_blank" rel="noopener noreferrer">
+                深空科技：太空数据中心与边缘AI革命
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>3/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Deep Tech to Space: Space Data Centers and AI Revolution at the Edge
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Jonas Weiss, Patricia Sagmeister, Gabriel Maiolini Capez, Dinesh Verma, Roberto ...
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">论文标题涉及太空数据中心和边缘AI，属于计算机网络和系统工程范畴，但未明确关联推荐系统、搜索或广告。太空数据中心可能带来新的网络架构挑战，对网络性能指标（如延迟、吞吐量）有潜在影响，但与推荐系统核心问题的直接相关性较低。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 14:23:26
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19892v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19892v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span><span class="category-tag">cs.AI</span><span class="category-tag">cs.ET</span><span class="category-tag">cs.NI</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Dramatic cost reductions driven by private sector innovations have led to a rapid increase in the number of satellites in orbit and a corresponding surge in space-generated data. As this trend continues, transmitting large volumes of data to Earth for processing may become increasingly costly and challenging due to potential space-to-Earth link congestion and increased latency. Moreover, traditional ground station networks may face difficulties accommodating growing data flows and workloads because of capacity constraints, complex scheduling logistics, and restricted visibility windows, which can limit scalability. Space Data Centers (SDCs) -- software-driven, multi-tenant artificial intelligence-based service platforms capable of processing data in orbit to generate actionable insights for client satellites and ground users -- represent a promising approach to address these challenges. This article presents the architecture of a Low Earth Orbit SDC satellite constellation, considering orbital design, inter-satellite links and network topology, computational resource organization, and software service orchestration. We analyze the potential technical feasibility and economic viability of SDCs using forecasting models informed by technology roadmaps and illustrate the concept through Earth observation and lunar exploration use cases.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19451v1" target="_blank" rel="noopener noreferrer">
+                一种用于不平衡物联网网络异常检测的混合聚类分类模型
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>3/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            A Hybrid Cluster-Based Classification Model for Anomaly Detection in Unbalanced IoT Networks
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Hossein Shaemi Barzoki, Amir Hossein Fathi Hafshejani, Ahmadreza Montazerolghaem
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文针对物联网网络中的异常检测，属于网络安全性，但未涉及推荐系统或网络系统性能优化。与我的研究重点（推荐系统、计算机网络系统及其实践）关联较弱。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 07:06:35
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19451v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19451v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.NI</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Detecting anomalies in Internet of Things (IoT) networks is a critical security challenge, often hampered by highly imbalanced and diverse network traffic datasets. Standard classifiers struggle to perform well across all traffic types. This paper proposes a hybrid detection model to address this challenge using the Bot-IoT dataset. Instead of a single complex classifier, we first employ K-Means clustering to segment the training data into three distinct traffic profile clusters. We then train and evaluate multiple baseline machine learning models, including Decision Tree, KNN, and XGBoost, on each cluster independently to identify the optimal classifier for that specific data profile. Our results show that this clusterspecific, hybrid approach, which assigns different simple models to different clusters, improves detection accuracy and provides a more robust and efficient framework for handling diverse IoT attack traffic.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19303v1" target="_blank" rel="noopener noreferrer">
+                无线通信中面向网络韧性的高效样本错误配置分类
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>2/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Sample-Efficient Misconfiguration Classification for Network Resilience in Wireless Communications
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Xin Hao, Chenhan Zhang, Massimo Piccardi, Vijaya Durga Chemalamarri, Qiwen Jiang...
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文关注无线通信中的网络韧性问题，属于计算机网络和系统领域，但与推荐系统或大规模推荐系统不直接相关。其具体方法（错误配置分类）没有明确应用于推荐系统的潜力，因此相关性较低。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 03:29:28
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19303v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19303v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.NI</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    As modern wireless communication networks grow increasingly complex, network outages driven by the inconsistency between dynamic topologies and protocol configurations have become a critical concern. To solve this issue, we mathematically formulate a protocol misconfiguration classification problem as a graph-based learning task and solve it with our proposed EtaGATv2 algorithm, an edge-type-aware graph attention network with dynamic attention. EtaGATv2 addresses two critical challenges: i) it captures non-uniform symptom propagation for protocol misconfiguration classification tasks, where certain network paths and nodes become critical for diagnosis, and ii) it extracts protocol-specific features from heterogeneous routing protocols with distinct message-passing behaviors by utilizing edge-type-aware transformations. Experiments across diverse and real-world topologies demonstrate that EtaGATv2 reaches state-of-the-art performance with 50% of the training samples, making it particularly suitable for networks with dynamic topologies and limited negative-labeled data.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.20047v1" target="_blank" rel="noopener noreferrer">
+                通过DRAM近内存处理将密码学从数据路径中移除
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>2/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Taking Cryptography Out of the Data Path via Near-Memory Processing in DRAM
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Nicola Barcarolo, Brahmaiah Gandham, Mohammad Sadrosadati, Roberto Passerone, On...
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文主要关注硬件层面的近内存处理和加解密加速，属于系统级优化但未明确针对推荐系统或网络性能。虽然在数据中心场景下可能间接提升安全性和效率，但与我的核心兴趣（推荐系统、计算机网络）关联较弱。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 16:06:03
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.20047v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.20047v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.CR</span><span class="category-tag">cs.AR</span><span class="category-tag">cs.DC</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Cryptographic algorithms such as AES-128 and SHA-256 are fundamental to ensuring data security and integrity. Although these algorithms are computationally efficient, their performance is often constrained by the processor-centric architectures (e.g., CPUs, GPUs), primarily due to the memory bottleneck. This constraint leads to increased latency and higher energy consumption, particularly when handling large volumes of data. To overcome these challenges, Processing-in-Memory (PIM) has emerged as a promising architectural paradigm, allowing computation to occur directly within or near memory units. By minimizing data movement between the processor and memory units, PIM can significantly accelerate cryptographic algorithms while improving energy efficiency. Several pieces of prior work have demonstrated the effectiveness of PIM at fundamentally accelerating cryptographic algorithms. However, none of the prior works have extensively demonstrated the potential of a real-world PIM system. In this paper, we want to investigate the potential and limitations of real-world PIM in accelerating cryptographic algorithms. As part of our methodology, the UPMEM PIM architecture is used to assess the scalability of cryptographic algorithms. When these algorithms operate on a single rank, their performance remains below that of modern CPUs. However, distributing the computation across multiple ranks significantly enhances performance. When all available ranks are utilized, real-world PIM can accelerate cryptographic algorithms more effectively.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19945v1" target="_blank" rel="noopener noreferrer">
+                GEM：面向MoE系统的GPU变体感知专家到GPU映射方法
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>2/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            GEM: GPU-Variability-Aware Expert to GPU Mapping for MoE Systems
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Sourish Wawdhane, Avinash Kumar, Poulami Das
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文关注的是MoE（混合专家）系统中专家模型到GPU的映射，属于系统级优化，但主要针对GPU变体（硬件差异），与推荐系统、广告、搜索中的模型训练或推理优化没有直接联系。虽然MoE在推荐模型中也有应用，但本文聚焦于硬件映射，而非推荐算法或用户建模，因此相关性较低。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 15:01:39
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19945v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19945v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span><span class="category-tag">cs.AI</span><span class="category-tag">cs.CL</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Mixture-of-Expert (MoE) models enable efficient inference by employing smaller experts and activating only a subset of them per token. MoE serving engines distribute experts across multiple GPUs and route tokens to appropriate GPUs at inference time based on experts activated. They process tokens in lock-step fashion, where tokens within a batch must finish processing before proceeding to the next layer. This synchronization barrier acts as a critical bottleneck because the performance of MoE models is limited by the straggler GPU that finishes last. Stragglers emerge when too many heavily used experts are placed on the same GPU or the slowest GPU. While prior works place experts that balance token loads across GPUs, they all overlook GPU variability and often place highly used experts on the slowest GPUs. We propose GEM, GPU-variability-aware Expert Mapping, a framework for GPU variability-aware expert to GPU mapping for MoE models. GEM exploits two insights. First, we must place experts such that each GPU receives non-uniform token loads based on their variability and they all finish processing a layer at about the same time. Our studies show that there are two types of experts: consistent that are used most of the time and temporal that are often used together for the remaining time. Our second insight is that we must place simultaneously used consistent and temporal experts on different GPUs and avoid placing them on slower GPUs to reduce slowdown. GEM gathers the variability profile of GPUs for each model and task and uses the token load distributions per task to map experts to GPUs. Our experiments show that GEM improves end-to-end latency by 7.9% on average and by up to 16.5% compared to the baseline.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19775v1" target="_blank" rel="noopener noreferrer">
+                理解大型语言模型的推理扩展：瓶颈、权衡与性能原理
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>2/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Understanding Inference Scaling for LLMs: Bottlenecks, Trade-offs, and Performance Principles
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Moiz Arif, Avinash Maurya, Sudharshan Vazhkudai, Bogdan Nicolae
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文聚焦于LLM推理扩展的瓶颈与权衡，属于NLP-centric领域，与推荐系统或计算机网络无直接关联。虽然LLM可能用于推荐系统的某些环节，但论文未涉及推荐或网络的具体应用，不符合我的核心研究方向。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 12:43:51
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19775v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19775v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span><span class="category-tag">cs.PF</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    The transition from standard generative AI to \emph{reasoning-centric architectures}, exemplified by models capable of extensive Chain-of-Thought~(CoT) processing, marks a fundamental paradigm shift in system requirements. Unlike traditional workloads dominated by compute-bound prefill, reasoning workloads generate long chains of reasoning tokens that shift inference into a \emph{Capacity-Bound regime}. This paper presents a comprehensive system characterization, evaluating models ranging from 8B to 671B parameters on GPUs clusters. By systematically exploring the interplay between Data, Tensor, and Pipeline parallelism, we identify critical bottlenecks that defy standard scaling heuristics. Our analysis reveals that data parallelism is throughput efficient for small models but hits a capacity trap on reasoning workloads as KV-cache fragmentation forces early throttling resulting in sub-optimal compute utilization. Tensor parallelism unlocks stranded memory and delivers sublinear gains near the 32B crossover. At frontier scale, dense models (e.g., Llama-405B) are interconnect and memory-bandwidth bound and favor high-degree TP, while sparse Mixture-of-Experts (MoE) models (e.g., DeepSeek-R1) are limited by routing and synchronization latency and benefit from hybrid strategies. These insights provide a rigorous decision framework for navigating the reasoning cliff, establishing new architectural imperatives for the next generation of inference infrastructure.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19480v1" target="_blank" rel="noopener noreferrer">
+                联邦ADAS：面向车载网络中设备端驾驶员哈欠识别的高效通信联邦蒸馏方法
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>2/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            FedADAS: Communication-Efficient Federated Distillation for On-Device Driver Yawn Recognition in Vehicular Networks
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Ahmed Mujtaba, Gleb Radchenko, Marc Masana, Radu Prodan
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文聚焦于车载网络中的驾驶员状态识别，属于特定应用场景，与推荐系统、搜索、广告等核心领域无关。虽然涉及通信效率（可能与网络优化相关），但目标应用和问题域与我的研究重点不匹配。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 07:32:11
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19480v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19480v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Driver fatigue is a critical safety concern in advanced driver assistance systems. Driver monitoring models trained off-site on static datasets adapt poorly to real-world conditions, while standard federated learning imposes high communication overhead, assumes homogeneous architectures, and struggles with personalized driver data. We present FedADAS, a federated distillation framework enabling collaborative on-device learning across heterogeneous vehicular networks. FedADAS enables full model heterogeneity by exchanging only soft logits on a shared public dataset, allowing each vehicle to run a customized model tailored to its computational constraints. Additionally, we introduce a yawn recognition pipeline supporting training and inference on edge devices that provides two robust architectures: Performance-Efficient (99.7 MB) achieving 98.3% F1-score with 1.99ms inference time on a Jetson NANO, and a Memory-Efficient (0.6 MB) that trains an epoch in 6.12 minutes on a Jetson AGX Orin. In experiments with up to 115 edge clients, FedADAS significantly outperforms traditional federated learning approaches at higher client participation, achieving up to 9974x reduction in communication cost while maintaining a superior tradeoff between personalization and generalization under extreme data heterogeneity, demonstrating its suitability for real-world deployment. Code is available at https://opensource.silicon-austria.com/mujtabaa/fedadas
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19452v1" target="_blank" rel="noopener noreferrer">
+                具有预测的弹性拜占庭协议
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>2/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Resilient Byzantine Agreement with Predictions
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Julien Dallot, Darya Melnyk, Tijana Milentijevic, Stefan Schmid, Patrik Welters
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文主要关注分布式系统中的拜占庭协议，属于容错计算领域，与推荐系统、网络系统等无直接关联。除非在分布式推荐系统训练或网络共识机制中有潜在应用，但标题未体现与推荐或网络性能相关的实用系统设计。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 07:06:50
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19452v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19452v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span><span class="category-tag">cs.AI</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    This paper studies the Byzantine Agreement problem where the nodes have access to a predictor that flags nodes for suspicion of faulty (Byzantine) behavior. We focus on algorithmic resilience -- the maximum number of faulty nodes an algorithm can tolerate -- and present algorithms and impossibility results whose resilience depend on the accuracy of the predictor. As our first main result, we bring a complete characterization of the consistency--robustness trade-offs in both the non-authenticated and authenticated settings: for $n$ nodes and a parameter $α\in [0, 1]$, we present algorithms that tolerate up to $α\cdot n$ faulty nodes when the predictor is correct (consistency), and up to $\frac{1-α}{2} \cdot n - 1$ faulty nodes when the predictor is arbitrarily wrong (robustness); in the authenticated setting the robustness bound improves to $(1-α) \cdot n - 1$. These trade-offs are exactly tight as we show that one additional faulty node renders the problem impossible. Our second main result characterizes smoothness: the rate at which resilience degrades as the predictor becomes less accurate. We show that resilience linearly decreases in the number of wrong predictions as long as that number stays within a constant fraction of $n$. Concretely, in the non-authenticated setting each additional wrong prediction loses one unit of resilience, whereas in the authenticated setting the decline is halved since two wrong predictions are needed to lose one unit of resilience.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19385v1" target="_blank" rel="noopener noreferrer">
+                LatentBox：一种面向AI生成图像的高效潜空间优先存储系统
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>2/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            LatentBox: An Efficient Latent-First Storage System for AI-Generated Images
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Zirui Wang, Yunjia Zheng, Tingfeng Lan, Zhaoyuan Su, Haoran Ni, Juncheng Yang, Y...
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">论文主要关注AI生成图像的存储系统优化，属于存储与视觉领域的具体应用，与推荐系统、网络系统等核心方向无直接关联。虽然潜空间表示在推荐系统中用于用户或物品表征，但本文聚焦存储而非表征学习或检索优化，因此相关性极低。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 05:31:49
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19385v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19385v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span><span class="category-tag">cs.DB</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    The explosive growth of AI-generated images has created a sustainability challenge for storage infrastructure. Platforms like Midjourney and Adobe Firefly already host billions of generative images, yet conventional object stores persist them as blobs with full-resolution pixels, consuming huge amounts of storage capacity and bandwidth. Unlike natural photos, however, AI-generated images can be deterministically reconstructed from compact, model-native latent tensors, making persistent image storage fundamentally redundant. This paper presents LatentBox, a latent-first storage system for AI-generated images. LatentBox treats compressed latents as durable storage objects and uses on-demand GPU reconstruction on the read path to trade inexpensive compute for large persistent storage savings. Our design is guided by the first large-scale analysis of AI-generated image access we are aware of, based on a 35-month, 2-billion-request production trace from a major generative-content platform. Motivated by the trace analysis, LatentBox keeps frequently accessed images in decoded pixel format for fast hits, stores less-active objects as compressed latents to expand effective cache capacity, and continuously adjusts the splits between the image and latent cache to optimize user-perceived access latency.We build a LatentBox prototype and evaluate it with the production trace. LatentBox reduces persistent storage by 78.7% with competitive or even lower mean and tail latency over a pure image-based storage.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-1">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19237v1" target="_blank" rel="noopener noreferrer">
+                广义比较-交换操作与无限到达模型下的空间高效通用构造
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>2/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Generalized Compare-and-Swap and Space-Efficient Universal Constructions for the Infinite-Arrival Model
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Vassos Hadzilacos, Myles Thiessen, Sam Toueg
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文专注于分布式计算中的同步原语和模型（无限到达模型），属于理论计算机科学领域。虽可能间接关联分布式系统（如RDMA中的原子操作），但缺乏对推荐、搜索或广告系统的明确应用或性能影响，与我的核心关注点不直接相关。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 01:14:19
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19237v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19237v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    We introduce GCAS, a natural generalization of the well-known compare-and-swap (CAS) object. Intuitively, GCAS just replaces the fixed equality test of CAS with a parametrized comparator chosen from $\{<, =, >\}$. To showcase the utility of GCAS, we present two space-efficient wait-free universal constructions for systems where the number of participating processes is unknown and may be infinite (the infinite-arrival model). The first has space-complexity linear in the number of processes that have participated so far, while the second has space-complexity linear in the point contention but assumes bounded concurrency. To the best of our knowledge, these are the first wait-free universal constructions that achieve this space complexity in the infinite-arrival model. To achieve space complexity linear in the point contention, our second universal construction uses a novel memory recycling scheme that works in the infinite-arrival model with bounded concurrency. The ideas behind this recycling scheme could be of more general use.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-2">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19847v1" target="_blank" rel="noopener noreferrer">
+                多租户RAG中账户串通下的隐私审计
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>1/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Auditing Privacy in Multi-Tenant RAG under Account Collusion
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Florian A. D. Burnat, Brittany I. Davidson
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文关注RAG系统的隐私审计，属于安全隐私方向，与推荐系统、网络系统等核心领域无直接关联。虽然RAG在推荐中可能用于知识增强，但本论文聚焦账户共谋下的隐私审计，属于应用层安全话题，不涉及推荐或网络的性能、架构或系统优化。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 13:41:59
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19847v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19847v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.CR</span><span class="category-tag">cs.IR</span><span class="category-tag">cs.LG</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Multi-tenant retrieval-augmented generation (RAG) services advertise per-account differential privacy as the operative leakage boundary: each account's queries are guaranteed to satisfy $(\varepsilon_{\text{acc}}, δ_{\text{acc}})$-DP with respect to the index. We identify same-index multi-account collusion as a privacy-boundary failure: for $k$ same-tenant accounts coordinating against the tenant's index -- the operative regime -- known DP composition theory implies joint leakage degrades unconditionally at rate $Θ(\sqrt{k} \cdot \varepsilon_{\text{acc}})$ for Gaussian-noised retrieval. Cross-tenant and external collusion match the rate only under explicit access-control failure (M4); without M4 these regimes have zero leakage by design and reduce to an architectural audit, not a DP audit. We exhibit an attack realizing the rate and derive a RAG-specific MIA prediction we test empirically. To make this per-account/joint gap auditable, we design the first audit protocol that operates against unmodified RAG deployments and issues a quantitative $(\textsf{PASS}, \varepsilon_{\text{audit}})$ verdict for the retrieval-score channel -- the noise-then-select step the per-account DP guarantee actually covers -- without index disclosure, pipeline redesign, or model-weight exposure. Generation-channel privacy (LLM output conditioned on selected documents) is a separate audit predicate that should compose with ours; we explicitly scope it out. The protocol composes generic cryptographic primitives (Merkle ledgers, ZK function-application proofs, Gaussian noise attestations) with six RAG-specific primitives (embedder commitment, index-content vector commitment, per-account query ledger, noise-then-select attestation, cross-tenant containment proof, coalition-size estimator) and supports both closed-form audit bounds and Rényi-DP moments-accountant tracking.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-2">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19793v1" target="_blank" rel="noopener noreferrer">
+                运动耦合感知：当状态变化为其自身感知提供动力
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>1/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Motion-Coupled Sensing: When the State Change Powers Its Own Sensing
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Muhammad Tahir, Muhammad Mubbashar Baig, Umer Irfan, Muhammad Ahad, Naveed Anwar...
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文标题描述了一种新颖的感知范式，即利用状态变化本身来驱动传感过程。这属于传感器网络或物联网领域，与推荐系统、搜索引擎或广告系统无关，也与计算机网络和系统的实际应用无关。因此，它完全不在我的关注范围内。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 12:57:46
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19793v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19793v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.NI</span><span class="category-tag">cs.ET</span><span class="category-tag">eess.SY</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Batteryless IoT systems have largely followed two paths: ambient-energy sensing, where energy arrival is decoupled from the event being monitored, and kinetic event telegrams, where a user actuation powers a short report of the actuation itself. Mechanically gated states expose a third case: the access motion is not only an event to report, but the moment at which a latent physical state may have changed and must be measured. We show that routine hinge motion can supply enough energy for one bounded wake-sense-transmit transaction, including ultrasonic sensing and a long-range LoRa uplink. We call this principle motion-coupled sensing and instantiate it with an open-source compact electromagnetic harvester that retrofits to bins, doors, and cabinets with no structural modification. We size the platform for the most demanding workload, waste-bin monitoring, where each actuation must power both an ultrasonic measurement and a long-range LoRa uplink. Across five campus locations and 5,945 lid actuations, the bin deployment achieves 99.3% per-event transmission reliability. Field deployments on room doors with 1,870 actuations and office cabinets with 1,636 actuations achieve 92% and 94% transmission success respectively, demonstrating that the same energy envelope transfers across hinge geometries without hardware redesign. These results show that mechanical access can be treated as a self-powered sensing transaction, removing periodic polling and scheduled battery maintenance for IoT deployments.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-2">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19715v1" target="_blank" rel="noopener noreferrer">
+                比特币V2传输协议的安全性分析：利用设计缺陷实现持续日食攻击和降级攻击
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>1/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Security Analysis of Bitcoin's V2 Transport Protocol: Exploiting Design Implications for Sustained Eclipse and Downgrade Attacks
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Charmaine Ndolo, Florian Tschorsch
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文专注于比特币的传输协议安全性，属于区块链和网络安全领域，与推荐系统、计算机网络（如数据中心网络、卫星网络）等我的核心研究方向无关。论文不涉及任何可应用于搜索、推荐或广告系统的技术或方法论。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 11:50:57
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19715v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19715v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.CR</span><span class="category-tag">cs.DC</span><span class="category-tag">cs.NI</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    Bitcoin recently introduced a new protocol for the encryption of peer-to-peer (P2P) communication. The protocol, known as V2 P2P transport, represents a big step towards securing the overlay network against various previously-known attack vectors. Based on an analysis of V2 P2P transport, this work examines the current viability of said attacks and concludes that while they are now remediated, alternative attacks and paths to similar objectives exist. The identified shortcomings are conceptual (and not implementation bugs) and even applicable to other P2P networks. We show how a network-level attacker can identify application messages using the length of TCP payloads, can eclipse a target node by taking advantage of how encrypted communication channels work and can downgrade all of a node's connections to the unencrypted protocol by using the mechanisms designed for compatibility. We validate our contributions using a combination of network measurements, emulations and simulations. Finally, we propose a series of short-term and long-term countermeasures towards securing Bitcoin's P2P network. To the best of our knowledge, we are the first to study Bitcoin's security under V2 P2P transport.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-2">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19448v1" target="_blank" rel="noopener noreferrer">
+                XAI FL-IDS：基于联邦学习和SHAP的可解释分布式入侵检测系统框架
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>1/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            XAI FL-IDS: A Federated Learning and SHAP-Based Explainable Framework for Distributed Intrusion Detection Systems
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Mohammad Hossein Gholamrezazadeh, AhmadReza Montazerolghaem
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文专注于网络安全领域的入侵检测，结合联邦学习与可解释AI，但未涉及推荐系统、检索、排序、网络传输优化等核心关注领域。题目表明其应用场景是分布式系统安全，与推荐的用户建模、匹配或系统的网络性能优化无直接关联。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 07:03:10
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19448v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19448v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.CR</span><span class="category-tag">cs.NI</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    An Intrusion Detection System (IDS) is vital in cybersecurity, detecting unauthorized activity across networks. With attacks on network layers increasing, stronger IDSs are needed. Yet most IDSs rely on centralized detection, forcing IoT nodes to ship data to a server, adding overhead and offering no privacy guarantees. Moreover, conventional models focus solely on flagging attacks, without explaining how individual features influence those decisions. This research aims to address these dual limitations by first proposing a solution for privacy preservation and then adding explainability to the new system. We introduce an innovative framework called XAI FL-IDS, which integrates Federated Learning (FL) with Explainable AI (XAI). The XAI FL-IDS system eliminates concerns over data transfer because each node trains its data locally and only sends the necessary update parameters to the server. Additionally, all detections, both at the local node and central server levels, are scrutinized using SHapley Additive exPlanations (SHAP), providing detailed insight into the decision-making process. This system consists of a central server and 10 clients and utilizes the Edge-IIoTset dataset, which is distributed among all clients with careful attention paid to class balancing. On each client, the XGBoost model is executed on local data. The proposed method demonstrates robust efficiency and strong performance in intrusion detection, achieving an accuracy of over 99% and, at times, reaching 100%. By incorporating FL, the confidentiality of the network information on every local node is guaranteed.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-2">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19531v1" target="_blank" rel="noopener noreferrer">
+                无冲突作为进展条件
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>1/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Conflict-Freedom as a Progress Condition
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Petr Kuznetsov, Pierre Sutra, Guillermo Toyos-Marfurt
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该标题未提及任何与推荐系统、网络或系统相关的技术术语，可能属于理论计算机科学或分布式系统领域，但与我的核心关注点无直接关联。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 08:32:22
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19531v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19531v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    An obstruction-free implementation guarantees progress to every operation that is given enough time to take steps in isolation. But, as we show in this paper, the mere presence of concurrent operations alone does not have to prevent progress; only incomplete conflicting (non-commuting) operations may do so. This progress condition, that we call conflict-freedom, is a natural generalization of obstruction-freedom that promises efficient implementations for objects exhibiting semantic commutativity. We show that, as with obstruction-freedom, every sequential object has a read-write conflict-free linearizable implementation. Our conflict-free universal construction is based on a novel generalization of the instrumental commit-adopt object, interesting in its own right.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-2">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19488v1" target="_blank" rel="noopener noreferrer">
+                一种并行唤醒问题及多房间灯开关策略
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>1/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            A parallel wakeup problem and multi-room light switch strategies
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>John Haslegrave, Paul A. Russell, Mark Walters
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文题目描述的是一个特定的并行唤醒问题和多房间灯开关策略，属于控制理论或智能家居领域，与推荐系统、计算机网络或系统优化无关。没有明显应用在搜索、推荐或广告中的连接点。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 07:42:18
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19488v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19488v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span><span class="category-tag">cs.DM</span><span class="category-tag">math.CO</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    The wakeup problem in distributed computing asks for a symmetric protocol that enables one of several processors to eventually guarantee that all (or, in a more general setting, enough) other processors have acted, using a shared register but no global clock. Dropping the symmetry requirement gives a well-known exercise often phrased in terms of prisoners entering, in an unknown sequence, a room equipped with a single binary switch, and using it to communicate. Kane and Kominers recently analysed a more general version of the latter with multiple parallel and indistinguishable rooms. We answer some open questions of Kane and Kominers regarding the minimum number of switch states needed for the prisoners to solve the problem. We also consider the symmetric ``wakeup'' version of this scenario, and establish exactly for which numbers of processors and registers a solution is possible.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-2">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19327v1" target="_blank" rel="noopener noreferrer">
+                量子增强分布式传感器融合：从投影噪声到海森堡极限拜占庭容错网络的聚合下界
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>1/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Quantum-Enhanced Distributed Sensor Fusion: Lower Bounds on Aggregation from Projection Noise to Heisenberg-Limited Byzantine-Tolerant Networks
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Vasanth Iyer, S. S. Iyengar
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文专注于量子传感和分布式融合的物理层理论，与推荐系统、计算机网络或实际系统优化无关，属于完全无关的物理/理论工作。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 04:03:42
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19327v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19327v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.DC</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    We derive unified lower bounds on the mean squared error (MSE) of distributed quantum sensor fusion under Byzantine faults and decoherence. Building on the classical Brooks-Iyengar overlap function and its vector extension, the predictive outlier model for virtual sensor tracking, and SPOTLESS spatial-temporal verification, we establish a two-parameter family of bounds indexed by entanglement visibility V and fault fraction f/M. For M quantum sensors with N atoms each and sensitivity eta, the MSE of any estimator satisfies MSE >= (1-V^2)/(4*N*eta^2*M_eff) + V^2/(4*N*eta^2*M_eff^2), where M_eff = M-2f under Brooks-Iyengar Byzantine fault tolerance and M_eff = M-f when predictive outlier detection successfully identifies faulty sensors. The bound interpolates continuously between the standard quantum limit (V=0, scaling as 1/sqrt(M_eff)) and the Heisenberg limit (V=1, scaling as 1/M_eff). Monte Carlo simulations with up to 64 sensors validate the theoretical scaling laws. Validation on the Intel Berkeley Lab 54-mote dataset with spatial clustering demonstrates 20-27 dB SNR improvement from entanglement per cluster, and reveals that missing classical sensor data degrades fusion agreement in the same pattern as quantum decoherence. The framework bridges quantum metrology with classical stream-processing architectures including Data-Cleaning Trees and the 80-20 Power Law for scale-invariant clustering.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-2">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19437v1" target="_blank" rel="noopener noreferrer">
+                暗网的五十种阴影
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>0/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            Fifty Shades of Darknet
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Siddique Abubakr Muntaka, Jacques Bou Abdo
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">论文标题暗示其内容涉及暗网（Darknet），与计算机网络安全或网络匿名相关，这与我的研究重点（推荐系统、计算机网络与系统中的性能优化等）无直接关联。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 06:47:03
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19437v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19437v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.NI</span><span class="category-tag">cs.CR</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    The Invisible Internet Project (I2P) is a peer-to-peer anonymous overlay network whose architecture includes a structurally distinct sublayer not characterized in existing security literature. We term this sublayer the Exclusive Network: nodes here host operational services and draw on I2P's routing resources, but publish no RouterInfo record to the network's distributed database (NetDB). In a controlled three-node testbed, we demonstrate that an Exclusive Network node survives sequential floodfill queries from a pool of routers with zero NetDB hits, while its hosted service remains continuously accessible to authorized peers. This property is exploitable by documented I2P-based malware, for example, I2PRAT (RATatouille), for persistent command-and-control operations against national assets or corporate networks. The structure is analogous to nation-state Operational Relay Box (ORB) infrastructure. The existence of this sublayer, together with the inability of top-down empirical mapping to characterize it, motivates a move toward formal analytical methods to understand the emergence and behavior of covert networks within I2P.
+                </div>
+            </details>
+    </div>
+</div><!--
+ * @Author: Doragd doragd@users.noreply.github.com
+ * @Date: 2025-10-09 23:23:38
+ * @LastEditors: Doragd doragd@users.noreply.github.com
+ * @LastEditTime: 2025-10-10 00:41:41
+ * @FilePath: /Algorithm-Practice-in-Industry/paperBotV2/frontend/templates/normal_paper_template.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<div class="simple-paper-card p-3 collapsed-level-2">
+    <div class="flex justify-between items-start mb-1">
+        <h3 class="text-base font-medium text-primary hover:underline transition-colors">
+            <a href="https://www.alphaxiv.org/abs/2605.19290v1" target="_blank" rel="noopener noreferrer">
+                基于MoE的分层深度强化学习实现低空经济中无人机辅助的协同边缘推理
+            </a>
+        </h3>
+        <span class="score-badge bg-gray-100 text-gray-800">
+            <i class="fa fa-star mr-1"></i>0/10
+        </span>
+    </div>
+    
+    <div class="paper-details">
+        <div class="mb-2 text-base text-gray-700">
+            UAV-Assisted Cooperative Edge Inference for Low-Altitude Economy via MoE-based Hierarchical Deep Reinforcement Learning
+        </div>
+        
+        <div class="mb-2 text-sm text-gray-600 italic">
+            <i class="fa fa-user-circle-o text-gray-500 mr-1"></i>Wenhao Zhuang, Yuyi Mao, Ivan Wang-Hei Ho, Xianghao Yu
+        </div>
+        
+        
+        
+        
+        <div class="mb-2">
+            <strong class="text-gray-700 text-sm"><i class="fa fa-thumbs-up text-green-500 mr-1"></i>个性化推荐理由:</strong>
+            <p class="text-gray-600 text-sm mt-1">该论文主要聚焦于无人机辅助的协同边缘推理，属于通信与边缘计算领域，与推荐系统、计算机网络和系统等核心关注点不相关。未涉及推荐、排序、检索或网络系统性能优化等具体方向。</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                <i class="fa fa-calendar-o mr-1"></i> 2026-05-19 03:08:41
+                <span class="mx-2">|</span>
+                <a href="https://arxiv.org/abs/2605.19290v1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                    arXiv:2605.19290v1
+                </a>
+                <span class="mx-2">|</span>
+                <div class="flex flex-wrap"><span class="category-tag">cs.NI</span><span class="category-tag">eess.SY</span></div>
+            </div>
+            
+            
+            <details class="border-t border-gray-200 pt-4 mt-4">
+                 <summary class="text-sm text-primary cursor-pointer"> 
+                     查看完整摘要 <i class="fa fa-chevron-down ml-1 text-xs"></i> 
+                 </summary> 
+                 <div class="abstract-content mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700">
+                    The low-altitude economy (LAE) is reshaping the industrial landscape by deploying unmanned aerial vehicles (UAVs) to facilitate a wide range of applications demanding flexible aerial mobility. Integrating edge artificial intelligence (AI) into LAE platforms creates a compelling paradigm where UAVs provide real-time AI-driven analysis while simultaneously executing their primary aerial mission duties. However, realizing this paradigm remains challenging due to the strict mission constraints imposed by these primary duties and the throughput bottlenecks of wireless links. To bridge this gap, we propose a UAV-assisted cooperative edge inference framework where UAVs execute mission-critical LAE duties, quantified by trajectory deviations from reference paths, while concurrently supporting ground devices via intermediate feature offloading. Within this framework, UAV trajectories, inference task offloading decisions, and feature compression ratios are jointly optimized to maximize the system performance. We cast this joint optimization task into a constrained partially observable Markov decision process (POMDP) framework. To efficiently solve it, we propose HDRL-MoE, a novel hierarchical deep reinforcement learning framework that decouples the optimization of slow-varying inference decisions from rapidly changing UAV trajectory control. Furthermore, HDRL-MoE integrates a mixture-of-experts (MoE) architecture, where a router network orchestrates discrete offloading decisions while expert networks independently optimize the feature compression ratios. Extensive simulations show that HDRL-MoE achieves significant inference accuracy gains over baselines and exhibits high scalability and efficiency through its MoE design.
+                </div>
+            </details>
+    </div>
+</div>
+        </div>
+    </main>
+
+    <!-- 加载论文数据和JavaScript逻辑 -->
+    <script src="static/app.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 在精选论文和普通论文之间添加展开/折叠按钮
+            const papersContainer = document.querySelector('#papers-container');
+            if (papersContainer) {
+                // 添加展开/折叠全部按钮
+                const expandAllButton = document.createElement('div');
+                expandAllButton.className = 'expand-toggle';
+                expandAllButton.textContent = '展开/折叠全部非精选论文';
+                expandAllButton.addEventListener('click', function() {
+                    papersContainer.classList.toggle('expanded-all');
+                    this.textContent = papersContainer.classList.contains('expanded-all') ? 
+                        '收起全部非精选论文' : '展开全部非精选论文';
+                    
+                    // 更新所有论文标题前的图标状态
+                    const collapsedPapers = papersContainer.querySelectorAll('.collapsed-level-1');
+                    collapsedPapers.forEach(paper => {
+                        const iconElement = paper.querySelector('.expand-icon');
+                        if (iconElement) {
+                            iconElement.className = papersContainer.classList.contains('expanded-all') ? 
+                                'expand-icon fa fa-eye' : 'expand-icon fa fa-eye-slash';
+                        }
+                    });
+                });
+                
+                // 找到第一个非精选论文的位置
+                const firstNormalPaper = papersContainer.querySelector('.simple-paper-card');
+                if (firstNormalPaper) {
+                    papersContainer.insertBefore(expandAllButton, firstNormalPaper);
+                }
+                
+                // 添加分割线用于展开分数<=1的论文
+                const divider = document.createElement('div');
+                divider.className = 'papers-divider';
+                
+                const dividerLabel = document.createElement('div');
+                dividerLabel.className = 'papers-divider-label';
+                dividerLabel.textContent = '点击展开更多论文（评分较低）';
+                dividerLabel.addEventListener('click', function() {
+                    papersContainer.classList.toggle('expanded-level-2');
+                    this.textContent = papersContainer.classList.contains('expanded-level-2') ? 
+                        '点击收起低分论文' : '点击展开更多论文（评分较低）';
+                });
+                
+                divider.appendChild(dividerLabel);
+                
+                // 在所有非精选论文的最后一个元素后面添加分割线
+                const normalPapers = papersContainer.querySelectorAll('.simple-paper-card');
+                if (normalPapers.length > 0) {
+                    const lastNormalPaper = normalPapers[normalPapers.length - 1];
+                    papersContainer.insertBefore(divider, lastNormalPaper.nextSibling);
+                }
+            }
+            
+            // 为每个非精选论文添加点击标题展开/折叠详情的功能
+            const collapsedPapers = document.querySelectorAll('.collapsed-level-1');
+            collapsedPapers.forEach(paper => {
+                const titleElement = paper.querySelector('h3');
+                if (titleElement) {
+                    titleElement.style.cursor = 'pointer';
+                    
+                    // 创建展开/折叠图标元素并设置样式
+                    const iconElement = document.createElement('i');
+                    iconElement.className = 'expand-icon fa fa-eye-slash cursor-pointer';
+                    iconElement.style.marginRight = '8px';
+                    
+                    // 将图标插入到标题链接之前，作为同级元素
+                    const linkElement = titleElement.querySelector('a');
+                    if (linkElement) {
+                        // 将图标直接添加到标题元素中，位于链接之前
+                        titleElement.insertBefore(iconElement, linkElement);
+                        
+                        // 为图标单独添加点击事件处理展开/折叠
+                        iconElement.addEventListener('click', function(e) {
+                            e.stopPropagation(); // 阻止事件冒泡到标题元素
+                            const details = paper.querySelector('.paper-details');
+                            if (details) {
+                                const isExpanded = details.style.display === 'block';
+                                details.style.display = isExpanded ? 'none' : 'block';
+                                
+                                // 更新图标状态
+                                this.className = isExpanded ? 
+                                    'expand-icon fa fa-eye-slash cursor-pointer' : 'expand-icon fa fa-eye cursor-pointer';
+                                this.style.marginRight = '8px';
+                            }
+                        });
+                    }
+                    
+                    // 为标题元素添加点击事件，也可以展开/折叠，但会检查点击目标
+                    titleElement.addEventListener('click', function(e) {
+                        // 仅当点击的是标题本身（非链接、非图标）时才展开/折叠
+                        if (!e.target.closest('a') && !e.target.closest('.expand-icon')) {
+                            const details = paper.querySelector('.paper-details');
+                            if (details) {
+                                const isExpanded = details.style.display === 'block';
+                                details.style.display = isExpanded ? 'none' : 'block';
+                                
+                                // 更新图标状态
+                                const iconElement = this.querySelector('.expand-icon');
+                                if (iconElement) {
+                                    iconElement.className = isExpanded ? 
+                                        'expand-icon fa fa-eye-slash cursor-pointer' : 'expand-icon fa fa-eye cursor-pointer';
+                                    iconElement.style.marginRight = '8px';
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // 实现"仅显示精选"按钮功能
+            const showSelectedButton = document.getElementById('show-selected');
+            if (showSelectedButton) {
+                showSelectedButton.addEventListener('click', function() {
+                    // 显示所有精选论文，隐藏所有普通论文
+                    const selectedPapers = document.querySelectorAll('.paper-card');
+                    const normalPapers = document.querySelectorAll('.simple-paper-card');
+                    
+                    selectedPapers.forEach(paper => {
+                        paper.style.display = 'block';
+                    });
+                    
+                    normalPapers.forEach(paper => {
+                        paper.style.display = 'none';
+                    });
+                    
+                    // 更新显示计数
+                    const displayCountElement = document.getElementById('display-count');
+                    if (displayCountElement) {
+                        displayCountElement.textContent = `显示 ${selectedPapers.length} 篇论文 (共 ${selectedPapers.length + normalPapers.length} 篇)`;
+                    }
+                    
+                    // 更新按钮样式
+                    this.className = 'px-3 py-1 bg-primary text-white rounded text-sm hover:bg-primary/90 transition-colors';
+                    document.getElementById('show-all').className = 'px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 transition-colors';
+                    
+                    // 隐藏展开/折叠按钮和分割线
+                    const expandToggle = document.querySelector('.expand-toggle');
+                    if (expandToggle) expandToggle.style.display = 'none';
+                    
+                    const papersDivider = document.querySelector('.papers-divider');
+                    if (papersDivider) papersDivider.style.display = 'none';
+                });
+            }
+            
+            // 实现"全部论文"按钮功能
+            const showAllButton = document.getElementById('show-all');
+            if (showAllButton) {
+                showAllButton.addEventListener('click', function() {
+                    // 显示所有论文
+                    const allPapers = document.querySelectorAll('.paper-card, .simple-paper-card');
+                    allPapers.forEach(paper => {
+                        paper.style.display = 'block';
+                    });
+                    
+                    // 重置折叠状态
+                    papersContainer.classList.remove('expanded-all');
+                    
+                    // 更新显示计数
+                    const displayCountElement = document.getElementById('display-count');
+                    if (displayCountElement) {
+                        displayCountElement.textContent = `显示 ${allPapers.length} 篇论文 (共 ${allPapers.length} 篇)`;
+                    }
+                    
+                    // 更新按钮样式
+                    this.className = 'px-3 py-1 bg-primary text-white rounded text-sm hover:bg-primary/90 transition-colors';
+                    document.getElementById('show-selected').className = 'px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 transition-colors';
+                    
+                    // 重新显示展开/折叠按钮和分割线
+                    const expandToggle = document.querySelector('.expand-toggle');
+                    if (expandToggle) {
+                        expandToggle.style.display = 'block';
+                        expandToggle.textContent = '展开全部非精选论文';
+                    }
+                    
+                    const papersDivider = document.querySelector('.papers-divider');
+                    if (papersDivider) papersDivider.style.display = 'block';
+                });
+            }
+        });
+    </script>
+    <script>
+    
+    // 初始化日历
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            console.log('Attempting to initialize calendar...');
+            initCalendar();
+        } catch (error) {
+            console.error('Error initializing calendar:', error);
+        }
+    });
+    
+    // 日历初始化函数
+    function initCalendar() {
+        const toggleBtn = document.getElementById('date-picker-toggle');
+        const datePicker = document.getElementById('date-picker');
+        const calendarGrid = document.getElementById('calendar-grid');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        const currentMonthEl = document.getElementById('current-month');
+        const selectedDateText = document.getElementById('selected-date-text');
+        
+        // 当前显示的日期（从页面获取）
+        const currentDateStr = document.getElementById('current-date').textContent.trim().replace(/^\d+年|月|日/g, '');
+        const currentDate = new Date(currentDateStr);
+        let displayYear = currentDate.getFullYear();
+        let displayMonth = currentDate.getMonth();
+        
+        // 有论文数据的日期列表
+        const availableDates = ["20251216","20260424","20260407","20251205","20260508","20260501","20251119","20260513","20260128","20260219","20260515","20251225","20260430","20251202","20260402","20260421","20260108","20260220","20251106","20260403","20260224","20260317","20260203","20260226","20251114","20251017","20260109","20260115","20260520","20260212","20260122","20251212","20251024","20251210","20260310","20251125","20251010","20260410","20260408","20260324","20260123","20260319","20251022","20260210","20260106","20260114","20260318","20251014","20251111","20260304","20260305","20260312","20260113","20260303","20260320","20260206","20260227","20260428","20260101","20251021","20260116","20251112","20260213","20251118","20260313","20260327","20260225","20251031","20251224","20260306","20260331","20251223","20251218","20251023","20260506","20260121","20251009","20260415","20251016","20251015","20260218","20251219","20260127","20260512","20251217","20260325","20260217","20260505","20260417","20251120","20260507","20251121","20260429","20251030","20251127","20260414","20251107","20260107","20251126","20251204","20260129","20260205","20251209","20260311","20260326","20251211","20260422","20260211","20251230","20251028","20260204","20260409","20260130","20251113","20251105","20251029","20260423"];
+        
+        // 尝试从localStorage恢复选择状态
+        const savedDate = localStorage.getItem('selectedDate');
+        const savedYear = localStorage.getItem('selectedYear');
+        const savedMonth = localStorage.getItem('selectedMonth');
+        
+        // 确保页面加载时显示当前选中的日期
+        // 修复持久化问题：确保每次加载都能正确恢复选中状态
+        if (savedDate) {
+            selectedDateText.textContent = savedDate;
+            if (savedYear) displayYear = parseInt(savedYear);
+            if (savedMonth) displayMonth = parseInt(savedMonth);
+        } else {
+            // 首次加载时，将当前页面日期保存到localStorage
+            const currentPageDate = currentDateStr.replace(/\//g, '-');
+            selectedDateText.textContent = currentPageDate;
+            localStorage.setItem('selectedDate', currentPageDate);
+            localStorage.setItem('selectedYear', currentDate.getFullYear().toString());
+            localStorage.setItem('selectedMonth', currentDate.getMonth().toString());
+        }
+    
+        // 切换日历显示状态
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            // 显式控制hidden类的添加和移除
+            if (datePicker.classList.contains('hidden')) {
+                // 显示日历 - 确保移除hidden类
+                datePicker.classList.remove('hidden');
+                renderCalendar();
+            } else {
+                // 隐藏日历
+                datePicker.classList.add('hidden');
+            }
+        });
+        
+        // 点击其他区域关闭日历
+        document.addEventListener('click', () => {
+            if (!datePicker.classList.contains('hidden')) {
+                datePicker.classList.add('hidden');
+            }
+        });
+        
+        // 阻止日历内部点击事件冒泡
+        datePicker.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+        
+        // 上月和下月按钮
+        prevMonthBtn.addEventListener('click', () => {
+            displayMonth--;
+            if (displayMonth < 0) {
+                displayMonth = 11;
+                displayYear--;
+            }
+            renderCalendar();
+        });
+        
+        nextMonthBtn.addEventListener('click', () => {
+            displayMonth++;
+            if (displayMonth > 11) {
+                displayMonth = 0;
+                displayYear++;
+            }
+            renderCalendar();
+        });
+        
+        /**
+         * 渲染日历
+         */
+        function renderCalendar() {
+            // 清空日历网格
+            calendarGrid.innerHTML = '';
+            
+            // 更新当前月份显示
+            const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            currentMonthEl.textContent = displayYear + '年' + monthNames[displayMonth];
+            
+            // 计算当前月份的第一天是星期几
+            const firstDay = new Date(displayYear, displayMonth, 1);
+            const firstDayOfWeek = firstDay.getDay();
+            
+            // 计算当前月份的天数
+            const daysInMonth = new Date(displayYear, displayMonth + 1, 0).getDate();
+            
+            // 添加上月的占位天数
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.classList.add('py-1', 'text-gray-300');
+                calendarGrid.appendChild(emptyDay);
+            }
+            
+            // 获取当前日期（用于高亮显示）
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // 添加当前月份的天数
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                const currentDateObj = new Date(displayYear, displayMonth, day);
+                const dateStr = displayYear + String(displayMonth + 1).padStart(2, '0') + String(day).padStart(2, '0');
+                const displayDateStr = displayYear + '-' + String(displayMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+                
+                // 设置日期元素基本样式
+                dayElement.textContent = day;
+                
+                // 检查该日期是否有论文数据
+                const hasPapers = availableDates.includes(dateStr);
+                
+                if (hasPapers) {
+                    // 有论文数据的日期样式
+                    dayElement.classList.add('py-1', 'cursor-pointer', 'hover:bg-gray-100', 'rounded', 'bg-blue-50', 'font-medium');
+                    
+                    // 添加点击事件，跳转到对应日期的页面
+                    dayElement.addEventListener('click', () => {
+                        console.log('Date clicked:', displayDateStr);
+                        selectedDateText.textContent = displayDateStr;
+                        
+                        // 保存选择状态到localStorage
+                        localStorage.setItem('selectedDate', displayDateStr);
+                        localStorage.setItem('selectedYear', displayYear.toString());
+                        localStorage.setItem('selectedMonth', displayMonth.toString());
+                        
+                        datePicker.classList.add('hidden');
+                        
+                        // 构造目标URL并跳转
+                        const targetUrl = 'arxiv_' + dateStr + '.html';
+                        window.location.href = targetUrl;
+                    });
+                } else {
+                    // 没有论文数据的日期样式（置灰不可点击）
+                    dayElement.classList.add('py-1', 'text-gray-400', 'cursor-not-allowed');
+                }
+                
+                // 高亮显示当天日期（覆盖之前的样式）
+                if (currentDateObj.getTime() === today.getTime()) {
+                    dayElement.classList.remove('bg-blue-50');
+                    dayElement.classList.add('bg-primary', 'text-white', 'font-bold', 'shadow');
+                    if (!hasPapers) {
+                        // 当天没有论文时，仍然置灰但保持背景色
+                        dayElement.classList.add('opacity-70');
+                    }
+                }
+                
+                // 高亮显示当前选中的日期
+                if (displayDateStr === selectedDateText.textContent) {
+                    dayElement.classList.add('font-bold', 'border-2', 'border-primary', 'rounded-lg', 'shadow-md');
+                }
+                
+                // 增强有论文数据的日期样式，使其更明显
+                if (hasPapers && currentDateObj.getTime() !== today.getTime()) {
+                    dayElement.classList.add('bg-blue-100', 'hover:bg-blue-200', 'transition-colors', 'duration-200');
+                }
+                
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+    }
+    </script>
+    </body>
+
+</html>
